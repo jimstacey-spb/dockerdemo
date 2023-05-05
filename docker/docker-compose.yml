@@ -1,0 +1,34 @@
+version: '3.8'
+name: jimdemo # Имя проекта, мой PhpStorm 2022.3.3 подсвечивает тут ошибку, но всё работает
+
+services:
+  php:
+    container_name: jimdemo-php # Здесь и далее - имя контейнера
+    build:
+      # Путь к папке, которая будет корнем сборки и где лежит Dockerfile, по которому будет собираться контейнер
+      context: ./php
+    restart: unless-stopped
+    # Здесь и далее - соответствие файлов и папок хоста и контейнера. Слева хост, справа контейнер. Для каждого контейнера свой маунт.
+    volumes:
+      - ../backend-app:/var/www
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+    networks:
+      - internal
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: jimdemo-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ../backend-app:/var/www
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - php
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
